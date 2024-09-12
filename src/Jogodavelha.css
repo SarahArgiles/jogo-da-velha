@@ -30,6 +30,9 @@ body{
     grid-template-rows: repeat(3,200px);
     gap: 1rem;
 }
+.bord.game-over{
+    opacity: 0.8;
+}
 
 .cell{
     display: grid;
@@ -47,7 +50,7 @@ body{
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) ;
 }
 
-.cell.O, .cell.X{
+.cell.O, .cell.X, .game-over .cell{
     cursor: not-allowed;
 }
 
