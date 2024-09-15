@@ -1,104 +1,164 @@
-// Importação das bibliotecas
-import React, { useState, useEffect } from 'react'; // React e seus hooks para gerenciar estado 
-import './Jogodavelha.css'; 
-import './tailw.css'; // Importação do arquivo Tailwind 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Ícones do FontAwesome
-import { faMusic } from '@fortawesome/free-solid-svg-icons'; 
+import React, { useState, useEffect } from 'react';
+import './Jogodavelha.css';
+import './tailw.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMusic } from '@fortawesome/free-solid-svg-icons';
 
 function Jogodavelha() {
-  // Inicializa o tabuleiro com 9 posições vazias (jogo da velha é 3x3)
+  // Estado inicial do tabuleiro, preenchido com strings vazias
   const emptyBoard = Array(9).fill("");
 
-  // useState para armazenar o estado do tabuleiro, iniciando com o valor salvo no localStorage (ou vazio)
+  // Estados para gerenciar o tabuleiro, o jogador atual, o vencedor, o modo de jogo e a dificuldade
   const [board, setBoard] = useState(() => {
     const savedBoard = localStorage.getItem("board");
     return savedBoard ? JSON.parse(savedBoard) : emptyBoard;
   });
-  
-  // Estado para armazenar o jogador atual ("O" ou "X")
+
   const [playerAtual, setPlayerAtual] = useState(() => {
     const savedPlayer = localStorage.getItem("playerAtual");
-    return savedPlayer || "O"; // Se não houver nada salvo, inicia com "O"
+    return savedPlayer || "O";
   });
-  
-  // Estado para armazenar o vencedor, inicializando com o valor salvo no localStorage
+
   const [vencedor, setVencedor] = useState(() => {
     const savedVencedor = localStorage.getItem("vencedor");
-    return savedVencedor !== "null" ? savedVencedor : null; // "null" significa que não há vencedor ainda
+    return savedVencedor !== "null" ? savedVencedor : null;
   });
-  
-  // Estado para o modo de jogo: se está jogando contra o computador ou não
+
   const [jogoContraComputador, setJogoContraComputador] = useState(() => {
     const savedModo = localStorage.getItem("jogoContraComputador");
-    return savedModo ? JSON.parse(savedModo) : false; // Se não houver nada salvo, começa como modo 2 jogadores
+    return savedModo ? JSON.parse(savedModo) : false;
   });
-  
-  // Estado para gerenciar a música (som do Mario)
+
+  const [dificuldade, setDificuldade] = useState(() => {
+    const savedDificuldade = localStorage.getItem("dificuldade");
+    return savedDificuldade || "Fácil";
+  });
+
+  const [placar, setPlacar] = useState(() => {
+    const savedPlacar = localStorage.getItem("placar");
+    return savedPlacar ? JSON.parse(savedPlacar) : { vitoria: 0, derrota: 0, empate: 0 };
+  });
+
+  // Estado e funções para controlar a reprodução de áudio
   const [audio] = useState(new Audio(process.env.PUBLIC_URL + '/musicamario.mp3'));
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Função que toca ou pausa a música
   const togglePlayPause = () => {
     if (isPlaying) {
-      audio.pause(); 
+      audio.pause();
     } else {
-      audio.play(); 
+      audio.play();
     }
-    setIsPlaying(!isPlaying); 
+    setIsPlaying(!isPlaying);
   };
 
-  // Função chamada quando o jogador clica em uma célula do tabuleiro
+  // Função que é chamada quando uma célula é clicada
   const handleCellClick = (index) => {
-    // Se já houver vencedor ou a célula já estiver preenchida, retorna sem fazer nada
+    // Verifica se o jogo já acabou ou se a célula já está preenchida
     if (vencedor || board[index] !== "") return;
 
-    // Atualiza o tabuleiro com a jogada do jogador atual
+    // Atualiza o tabuleiro com o movimento do jogador atual
     const newBoard = board.map((item, itemIndex) => itemIndex === index ? playerAtual : item);
     setBoard(newBoard);
 
-    // Verifica se há um vencedor ou empate imediatamente após a jogada
+    // Verifica se há um vencedor
     const result = vitoria(newBoard);
 
     if (result) {
       setVencedor(result);
+      atualizarPlacar(result);
       return;
     }
 
-    // Se o modo for contra o computador e for a vez do jogador "O", o computador joga logo após
+    // Se estiver jogando contra o computador e for a vez do jogador "O", faz o movimento do computador
     if (jogoContraComputador && playerAtual === "O") {
-      setPlayerAtual("X"); // Alterna para o computador
-      setTimeout(() => jogadaComputador(newBoard), 500); // Computador joga depois de 500ms
+      setPlayerAtual("X");
+      setTimeout(() => jogadaComputador(newBoard), 500);
     } else {
-      // Alterna o jogador atual para "X" ou "O"
+      // Alterna o jogador atual
       setPlayerAtual(playerAtual === "X" ? "O" : "X");
     }
   };
 
-  // Lógica para o computador fazer sua jogada
+  // Função que faz a jogada do computador
   const jogadaComputador = (newBoard) => {
-    if (vencedor) return; // Se já houver vencedor, não faz nada
+    if (vencedor) return;
 
-    // Encontra as células vazias e escolhe uma aleatoriamente
-    const emptyIndexes = newBoard.map((item, index) => item === "" ? index : null).filter(val => val !== null);
-    if (emptyIndexes.length === 0) return; // Se não houver espaços livres, retorna
+    let bestMove;
+    if (dificuldade === "Fácil") {
+      const emptyIndexes = newBoard.map((item, index) => item === "" ? index : null).filter(val => val !== null);
+      if (emptyIndexes.length === 0) return;
+      bestMove = emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
+    } else {
+      bestMove = melhorJogada(newBoard);
+    }
 
-    // Escolhe uma célula aleatória para o computador jogar
-    const randomIndex = emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
-    const updatedBoard = newBoard.map((item, index) => index === randomIndex ? "X" : item);
-
+    const updatedBoard = newBoard.map((item, index) => index === bestMove ? "X" : item);
     setBoard(updatedBoard);
-    const result = vitoria(updatedBoard);
 
+    const result = vitoria(updatedBoard);
     if (result) {
       setVencedor(result);
+      atualizarPlacar(result);
     } else {
-      setPlayerAtual("O"); // Após a jogada do computador, volta para o jogador humano
+      setPlayerAtual("O");
     }
   };
 
-  // Função para verificar se há um vencedor
+  // Função para determinar a melhor jogada do computador usando o algoritmo Minimax
+  const melhorJogada = (boardToCheck) => {
+    let bestScore = -Infinity;
+    let move;
+
+    for (let i = 0; i < boardToCheck.length; i++) {
+      if (boardToCheck[i] === "") {
+        boardToCheck[i] = "X";
+        let score = minimax(boardToCheck, 0, false);
+        boardToCheck[i] = "";
+        if (score > bestScore) {
+          bestScore = score;
+          move = i;
+        }
+      }
+    }
+
+    return move;
+  };
+
+  // Algoritmo Minimax para avaliar a melhor jogada
+  const minimax = (boardToCheck, depth, isMaximizing) => {
+    const result = vitoria(boardToCheck);
+    if (result === "X") return 10 - depth;
+    if (result === "O") return depth - 10;
+    if (verificarEmpate(boardToCheck)) return 0;
+
+    if (isMaximizing) {
+      let bestScore = -Infinity;
+      for (let i = 0; i < boardToCheck.length; i++) {
+        if (boardToCheck[i] === "") {
+          boardToCheck[i] = "X";
+          let score = minimax(boardToCheck, depth + 1, false);
+          boardToCheck[i] = "";
+          bestScore = Math.max(score, bestScore);
+        }
+      }
+      return bestScore;
+    } else {
+      let bestScore = Infinity;
+      for (let i = 0; i < boardToCheck.length; i++) {
+        if (boardToCheck[i] === "") {
+          boardToCheck[i] = "O";
+          let score = minimax(boardToCheck, depth + 1, true);
+          boardToCheck[i] = "";
+          bestScore = Math.min(score, bestScore);
+        }
+      }
+      return bestScore;
+    }
+  };
+
+  // Função para verificar o vencedor do jogo
   const vitoria = (boardToCheck) => {
-    // Combinações possíveis de vitória (linhas, colunas e diagonais)
     const ways = [
       [boardToCheck[0], boardToCheck[1], boardToCheck[2]],
       [boardToCheck[3], boardToCheck[4], boardToCheck[5]],
@@ -110,56 +170,80 @@ function Jogodavelha() {
       [boardToCheck[2], boardToCheck[4], boardToCheck[6]],
     ];
 
-    // Verifica se algum jogador completou uma das combinações de vitória
     for (const cells of ways) {
-      if (cells.every(cell => cell === "O")) return "O"; // Se todas as células são "O", "O" venceu
-      if (cells.every(cell => cell === "X")) return "X"; // Se todas as células são "X", "X" venceu
+      if (cells.every(cell => cell === "O")) return "O";
+      if (cells.every(cell => cell === "X")) return "X";
     }
 
     return null;
   };
 
-  // Função que verifica se o jogo terminou em empate
+  // Função para verificar se houve empate
   const verificarEmpate = (boardToCheck) => {
-    if (boardToCheck.every(item => item !== "")) return "E"; // Se todas as células estiverem preenchidas e não houver vencedor, é empate
-    return null;
+    return boardToCheck.every(item => item !== "") ? "E" : null;
   };
 
-  // useEffect para rodar a verificação de vitória sempre que o estado do tabuleiro mudar
+  // Atualiza o placar de acordo com o resultado
+  const atualizarPlacar = (resultado) => {
+    setPlacar(prevPlacar => {
+      const novoPlacar = { ...prevPlacar };
+      if (resultado === "E") {
+        novoPlacar.empate += 1;
+      } else if (resultado === "O") {
+        novoPlacar.vitoria += 1;
+      } else if (resultado === "X") {
+        novoPlacar.derrota += 1;
+      }
+      localStorage.setItem("placar", JSON.stringify(novoPlacar));
+      return novoPlacar;
+    });
+  };
+
+  // Função para resetar o placar
+  const resetPlacar = () => {
+    setPlacar({ vitoria: 0, derrota: 0, empate: 0 });
+    localStorage.setItem("placar", JSON.stringify({ vitoria: 0, derrota: 0, empate: 0 }));
+  };
+
+  // Efeito para verificar vitória ou empate quando o tabuleiro é atualizado
   useEffect(() => {
     const result = vitoria(board);
     if (result) {
       setVencedor(result);
+      atualizarPlacar(result);
     } else {
       const empate = verificarEmpate(board);
       if (empate) {
         setVencedor(empate);
+        atualizarPlacar(empate);
       }
     }
   }, [board]);
 
-  // Salva o estado do jogo no localStorage sempre que o tabuleiro, jogador atual, vencedor ou modo de jogo mudam
+  // Efeito para salvar o estado atual no localStorage
   useEffect(() => {
     localStorage.setItem("board", JSON.stringify(board));
     localStorage.setItem("playerAtual", playerAtual);
     localStorage.setItem("vencedor", vencedor);
     localStorage.setItem("jogoContraComputador", JSON.stringify(jogoContraComputador));
-  }, [board, playerAtual, vencedor, jogoContraComputador]);
+    localStorage.setItem("dificuldade", dificuldade);
+    localStorage.setItem("placar", JSON.stringify(placar));
+  }, [board, playerAtual, vencedor, jogoContraComputador, dificuldade, placar]);
 
-  // Função para resetar o jogo (limpar tabuleiro e estado)
+  // Função para reiniciar o jogo
   const resetGame = () => {
-    setPlayerAtual("O"); // Reseta o jogador atual para "O"
-    setBoard(emptyBoard); // Reseta o tabuleiro
-    setVencedor(null); // Reseta o vencedor
-    localStorage.removeItem("board"); // Remove estado do localStorage
+    setPlayerAtual("O");
+    setBoard(emptyBoard);
+    setVencedor(null);
+    localStorage.removeItem("board");
     localStorage.removeItem("playerAtual");
     localStorage.removeItem("vencedor");
   };
 
   return (
     <main className="flex flex-col items-center justify-center h-screen bg-gray-100 p-4">
-      <h1 className="text-6xl text-center font-bold mb-8 font-serif text-gray-700">JOGO DA VELHA</h1>
-      
+      <h1 className="text-6xl text-center font-bold mb-8 font-serif text-gray-700">Jogo da Velha</h1>
+
       <img 
         src="https://upload.wikimedia.org/wikipedia/pt/e/eb/Mario_%28personagem%29.png" 
         alt="Mario" 
@@ -167,16 +251,62 @@ function Jogodavelha() {
       />
 
       <div className="flex flex-wrap justify-center mb-12 space-x-4 space-y-4">
-        <button className="bg-green-600 hover:bg-green-400 text-white font-bold py-3 px-6 rounded-full" onClick={() => setJogoContraComputador(true)}>Jogar contra o computador</button>
-        <button className="bg-red-600 hover:bg-red-400 text-white font-bold py-3 px-6 rounded-full" onClick={() => setJogoContraComputador(false)}>Jogar com 2 jogadores</button>
+        <button 
+          className="bg-green-600 hover:bg-green-400 text-white font-bold py-3 px-6 rounded-full"
+          onClick={() => setJogoContraComputador(true)}
+        >
+          Jogar contra o computador
+        </button>
+        <button 
+          className="bg-red-600 hover:bg-red-400 text-white font-bold py-3 px-6 rounded-full"
+          onClick={() => setJogoContraComputador(false)}
+        >
+          Jogar com 2 jogadores
+        </button>
       </div>
+
+      {jogoContraComputador && (
+        <div className="flex flex-wrap justify-center mb-12 space-x-4 space-y-4">
+          <button 
+            className={`py-3 px-6 rounded-full ${dificuldade === "Fácil" ? "bg-blue-600" : "bg-blue-400"} text-white font-bold`} 
+            onClick={() => setDificuldade("Fácil")}
+          >
+            Dificuldade Fácil
+          </button>
+          <button 
+            className={`py-3 px-6 rounded-full ${dificuldade === "Difícil" ? "bg-blue-600" : "bg-blue-400"} text-white font-bold`} 
+            onClick={() => setDificuldade("Difícil")}
+          >
+            Dificuldade Difícil
+          </button>
+        </div>
+      )}
 
       <div className="mb-8">
         <button 
           className="px-6 py-3 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-700 transition duration-300 flex items-center"
-          onClick={togglePlayPause}>
+          onClick={togglePlayPause}
+        >
           <FontAwesomeIcon icon={faMusic} className="mr-2" /> 
           {isPlaying ? 'Pausar Música' : 'Tocar Música'}
+        </button>
+      </div>
+
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-2">Placar</h2>
+        <div className="text-xl">
+          <p className="mb-2">Vitórias: <span className="font-bold text-green-600">{placar.vitoria}</span></p>
+          <p className="mb-2">Derrotas: <span className="font-bold text-red-600">{placar.derrota}</span></p>
+          <p>Empates: <span className="font-bold text-gray-600">{placar.empate}</span></p>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <button 
+          onClick={resetPlacar} 
+          className="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-400 transition-transform transform hover:scale-105"
+        >
+          Resetar Placar
         </button>
       </div>
 
