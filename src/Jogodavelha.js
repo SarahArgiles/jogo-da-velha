@@ -66,7 +66,6 @@ function Jogodavelha() {
 
     if (result) {
       setVencedor(result);
-      atualizarPlacar(result); // Atualiza o placar com o resultado
       return;
     }
 
@@ -99,7 +98,7 @@ function Jogodavelha() {
     const result = vitoria(updatedBoard);
     if (result) {
       setVencedor(result);
-      atualizarPlacar(result); // Atualiza o placar com o resultado
+     
     } else {
       setPlayerAtual("O");
     }
