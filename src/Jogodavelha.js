@@ -66,7 +66,7 @@ function Jogodavelha() {
 
     if (result) {
       setVencedor(result);
-      atualizarPlacar(result);
+      atualizarPlacar(result); // Atualiza o placar com o resultado
       return;
     }
 
@@ -99,7 +99,7 @@ function Jogodavelha() {
     const result = vitoria(updatedBoard);
     if (result) {
       setVencedor(result);
-      atualizarPlacar(result);
+      atualizarPlacar(result); // Atualiza o placar com o resultado
     } else {
       setPlayerAtual("O");
     }
@@ -210,12 +210,12 @@ function Jogodavelha() {
     const result = vitoria(board);
     if (result) {
       setVencedor(result);
-      atualizarPlacar(result);
+      atualizarPlacar(result); // Atualiza o placar com o resultado
     } else {
       const empate = verificarEmpate(board);
       if (empate) {
         setVencedor(empate);
-        atualizarPlacar(empate);
+        atualizarPlacar(empate); // Atualiza o placar com o resultado
       }
     }
   }, [board]);
@@ -241,40 +241,41 @@ function Jogodavelha() {
   };
 
   return (
-    <main className="flex flex-col items-center justify-center h-screen bg-gray-100 p-4">
-      <h1 className="text-6xl text-center font-bold mb-8 font-serif text-gray-700">Jogo da Velha</h1>
+    <main className="flex flex-col items-center justify-center  bg-gray-100 p-4">
+      
+      <h1 className="text-4xl sm:text-6xl text-center font-bold mb-4 sm:mb-8 font-serif text-gray-700">Jogo da Velha</h1>
 
-      <img 
-        src="https://upload.wikimedia.org/wikipedia/pt/e/eb/Mario_%28personagem%29.png" 
-        alt="Mario" 
-        className="mb-12 w-48 h-auto" 
-      />
-
-      <div className="flex flex-wrap justify-center mb-12 space-x-4 space-y-4">
+      <div className="flex flex-wrap justify-center mb-4 sm:mb-12 space-x-4 space-y-4">
         <button 
-          className="bg-green-600 hover:bg-green-400 text-white font-bold py-3 px-6 rounded-full"
+          className="bg-green-600 hover:bg-green-400 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-full"
           onClick={() => setJogoContraComputador(true)}
         >
           Jogar contra o computador
         </button>
         <button 
-          className="bg-red-600 hover:bg-red-400 text-white font-bold py-3 px-6 rounded-full"
+          className="bg-red-600 hover:bg-red-400 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-full"
           onClick={() => setJogoContraComputador(false)}
         >
           Jogar com 2 jogadores
         </button>
       </div>
+      
+      <img 
+        src="https://upload.wikimedia.org/wikipedia/pt/e/eb/Mario_%28personagem%29.png" 
+        alt="Mario" 
+        className="w-32 sm:w-48 h-auto mb-4 sm:mb-12" 
+      />
 
       {jogoContraComputador && (
-        <div className="flex flex-wrap justify-center mb-12 space-x-4 space-y-4">
+        <div className="flex flex-wrap justify-center mb-4 sm:mb-12 space-x-4 space-y-4">
           <button 
-            className={`py-3 px-6 rounded-full ${dificuldade === "Fácil" ? "bg-blue-600" : "bg-blue-400"} text-white font-bold`} 
+            className={`py-2 sm:py-3 px-4 sm:px-6 rounded-full ${dificuldade === "Fácil" ? "bg-blue-600" : "bg-blue-400"} text-white font-bold`} 
             onClick={() => setDificuldade("Fácil")}
           >
             Dificuldade Fácil
           </button>
           <button 
-            className={`py-3 px-6 rounded-full ${dificuldade === "Difícil" ? "bg-blue-600" : "bg-blue-400"} text-white font-bold`} 
+            className={`py-2 sm:py-3 px-4 sm:px-6 rounded-full ${dificuldade === "Difícil" ? "bg-blue-600" : "bg-blue-400"} text-white font-bold`} 
             onClick={() => setDificuldade("Difícil")}
           >
             Dificuldade Difícil
@@ -282,9 +283,9 @@ function Jogodavelha() {
         </div>
       )}
 
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-8">
         <button 
-          className="px-6 py-3 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-700 transition duration-300 flex items-center"
+          className="px-4 sm:px-6 py-2 sm:py-3 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-700 transition duration-300 flex items-center"
           onClick={togglePlayPause}
         >
           <FontAwesomeIcon icon={faMusic} className="mr-2" /> 
@@ -292,29 +293,29 @@ function Jogodavelha() {
         </button>
       </div>
 
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2">Placar</h2>
-        <div className="text-xl">
+      <div className="mb-4 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2">Placar</h2>
+        <div className="text-base sm:text-xl">
           <p className="mb-2">Vitórias: <span className="font-bold text-green-600">{placar.vitoria}</span></p>
           <p className="mb-2">Derrotas: <span className="font-bold text-red-600">{placar.derrota}</span></p>
           <p>Empates: <span className="font-bold text-gray-600">{placar.empate}</span></p>
         </div>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-8">
         <button 
           onClick={resetPlacar} 
-          className="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-400 transition-transform transform hover:scale-105"
+          className="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-400 transition-transform transform hover:scale-105"
         >
           Resetar Placar
         </button>
       </div>
 
-      <div className={`grid grid-cols-3 gap-8 w-full max-w-4xl ${vencedor ? "pointer-events-none" : ""}`}>
+      <div className={`grid grid-cols-3 gap-4 sm:gap-8 w-full max-w-4xl ${vencedor ? "pointer-events-none" : ""}`}>
         {board.map((item, index) => (
           <div
             key={index}
-            className={`h-32 w-32 flex items-center justify-center text-8xl font-bold cursor-pointer border-2 border-gray-400 rounded-lg ${item === "O" ? "text-red-600" : item === "X" ? "text-blue-600" : "text-gray-400"}`}
+            className={`h-24 sm:h-32 w-24 sm:w-32 flex items-center justify-center text-4xl sm:text-8xl font-bold cursor-pointer border-2 border-gray-400 rounded-lg ${item === "O" ? "text-red-600" : item === "X" ? "text-blue-600" : "text-gray-400"}`}
             onClick={() => handleCellClick(index)}
           >
             {item}
@@ -322,10 +323,10 @@ function Jogodavelha() {
         ))}
       </div>
 
-      <div className="mt-8">
+      <div className="mt-4 sm:mt-8">
         <button 
           onClick={resetGame} 
-          className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-400 transition-transform transform hover:scale-105"
+          className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-400 transition-transform transform hover:scale-105"
         >
           Recomeçar
         </button>
@@ -333,11 +334,11 @@ function Jogodavelha() {
 
       {vencedor &&
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80">
-          <div className="text-center p-8 bg-white rounded-lg shadow-lg transform scale-110 transition-transform duration-300">
-            <h2 className={`text-3xl font-bold mb-4 ${vencedor === "E" ? "text-gray-800" : vencedor === "O" ? "text-red-600" : "text-blue-600"}`}>
+          <div className="text-center p-4 sm:p-8 bg-white rounded-lg shadow-lg transform scale-100 sm:scale-110 transition-transform duration-300">
+            <h2 className={`text-xl sm:text-3xl font-bold mb-4 ${vencedor === "E" ? "text-gray-800" : vencedor === "O" ? "text-red-600" : "text-blue-600"}`}>
               {vencedor === "E" ? 'Empatou!' : `O vencedor é ${vencedor}`}
             </h2>
-            <button onClick={resetGame} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-400 transition-transform transform hover:scale-105">Recomeçar</button>
+            <button onClick={resetGame} className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-400 transition-transform transform hover:scale-105">Recomeçar</button>
           </div>
         </div>
       }
